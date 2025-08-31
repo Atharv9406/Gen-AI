@@ -1,0 +1,7 @@
+streamlit
+sentence-transformers
+scikit-learn
+joblib
+numpy
+pandas
+openai

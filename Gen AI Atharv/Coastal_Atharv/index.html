@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Coastal Protection Planner</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>AI Coastal Protection Planner</h1>
+    <p class="tagline">Generate coastal protection strategies (living shorelines, nourishment, seawalls, managed retreat, hybrid).</p>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Site details</h2>
+      <form id="scenarioForm">
+        <div class="row">
+          <label>Site name
+            <input type="text" name="site" placeholder="e.g., North Beach" required>
+          </label>
+          <label>Country / Region
+            <input type="text" name="region" placeholder="e.g., Gujarat, India">
+          </label>
+        </div>
+
+        <div class="row">
+          <label>Shoreline type
+            <select name="shoreline">
+              <option value="sandy">Sandy beach</option>
+              <option value="rocky">Rocky shore</option>
+              <option value="mangrove">Mangrove / estuary</option>
+              <option value="urban">Urban / engineered</option>
+            </select>
+          </label>
+
+          <label>Primary issue
+            <select name="issue">
+              <option value="erosion">Erosion</option>
+              <option value="flooding">Coastal flooding</option>
+              <option value="storm-surge">Storm surge</option>
+              <option value="habitat-loss">Habitat loss</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="row">
+          <label>Budget (approx)
+            <input type="text" name="budget" placeholder="Low / Medium / High">
+          </label>
+          <label>Preferred approach
+            <select name="preference">
+              <option value="nature">Nature-based</option>
+              <option value="hard">Hard engineering</option>
+              <option value="hybrid">Hybrid</option>
+              <option value="no-preference">No preference</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="full">
+          Additional notes
+          <textarea name="notes" rows="4" placeholder="Any extra context: tourism, protected species, infrastructure, etc."></textarea>
+        </label>
+
+        <div class="actions">
+          <button id="generateBtn" type="submit">Generate strategy (AI)</button>
+          <button id="exampleBtn" type="button">Load example</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card results" id="results">
+      <h2>AI-generated strategy</h2>
+      <div id="output" class="output">
+        <p class="muted">Fill the form and click <strong>Generate strategy (AI)</strong>.</p>
+      </div>
+    </section>
+
+    <section class="card notes">
+      <h3>Quick tips</h3>
+      <ul>
+        <li>Nature-based measures (mangroves, dunes) work well for sheltered coasts. NOAA reference.</li>
+        <li>Hard defenses suit high-value assets but need long-term maintenance.</li>
+        <li>Consider managed retreat where repeated damage is unavoidable. IPCC guidance.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <small>Project: AI-generated coastal protection strategies — demo frontend</small>
+  </footer>
+
+  <script>
+    const form = document.getElementById('scenarioForm');
+    const output = document.getElementById('output');
+    const generateBtn = document.getElementById('generateBtn');
+    const exampleBtn = document.getElementById('exampleBtn');
+
+    exampleBtn.addEventListener('click', () => {
+      form.site.value = 'East Bay Sands';
+      form.region.value = 'Kerala, India';
+      form.shoreline.value = 'sandy';
+      form.issue.value = 'erosion';
+      form.budget.value = 'Medium';
+      form.preference.value = 'nature';
+      form.notes.value = 'Nearby fishing village; important turtle nesting site.';
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      generateBtn.disabled = true;
+      generateBtn.textContent = 'Generating...';
+
+      const data = {
+        site: form.site.value,
+        region: form.region.value,
+        shoreline: form.shoreline.value,
+        issue: form.issue.value,
+        budget: form.budget.value,
+        preference: form.preference.value,
+        notes: form.notes.value
+      };
+
+      try {
+        const res = await fetch('/api/generate', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(data)
+        });
+
+        if (!res.ok) {
+          const txt = await res.text();
+          output.innerHTML = `<pre class="error">Server error: ${txt}</pre>`;
+        } else {
+          const json = await res.json();
+          output.innerHTML = '<pre>' + (json.strategy || json.text || JSON.stringify(json, null, 2)) + '</pre>';
+        }
+      } catch (err) {
+        output.innerHTML = `<pre class="error">Request failed: ${err.message}</pre>`;
+      } finally {
+        generateBtn.disabled = false;
+        generateBtn.textContent = 'Generate strategy (AI)';
+      }
+    });
+  </script>
+</body>
+</html>
